@@ -13,3 +13,4 @@
 /tests/MondoCore.ApplicationInsights.FunctionalTests/obj
 /test/MondoCore.ApplicationInsights.FunctionalTests/bin
 /test/MondoCore.ApplicationInsights.FunctionalTests/obj
+/test/MondoCore.ApplicationInsights.FunctionalTests/localhost.json
