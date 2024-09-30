@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AppInsights = MondoCore.Azure.ApplicationInsights.ApplicationInsights;
 using MondoCore.Log;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace MondoCore.ApplicationInsights.FunctionalTests
 {
@@ -54,9 +55,9 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
             { 
                 log.SetProperty("Model", "Corvette");
 
-                await log.WriteError(new Exception("Bob's hair is on fire"), properties: new {Make = "Chevy", Engine = new { Cylinders = 8, Displacement = 350, Piston = new { RodMaterial = "Chrome Moly", Material = "Stainless Steel", Diameter = 9200 } } } );
-                await log.WriteError(new Exception("Fred's hair is on fire"), properties: new {Make = "Chevy" } );
-                await log.WriteError(new Exception("Wilma's hair is on fire"), properties: new {Make = "Chevy" } );
+                await log.WriteError(new Exception("Bob Dot's hair is on fire"), properties: new {Make = "Chevy", Engine = new { Cylinders = 8, Displacement = 350, Piston = new { RodMaterial = "Chrome Moly", Material = "Stainless Steel", Diameter = 9200 } } } );
+                await log.WriteError(new Exception("Fred Dot's hair is on fire"), properties: new {Make = "Chevy" } );
+                await log.WriteError(new Exception("Wilma Dot's hair is on fire"), properties: new {Make = "Chevy" } );
             }
         }
 
@@ -85,6 +86,27 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
             }
         }
 
+
+        [TestMethod]
+        public async Task ApplicationInsights_WriteAvailability()
+        {
+            using(var log = SetupRequest("WriteError3"))
+            { 
+                 await log.WriteAvailability(new AvailabilityTelemetry
+                 {
+                   Message      = "My app is available",
+                   Success      = true,
+                   Properties   = new { Make = "Chevy", Model = "Silverado"},
+                   Metrics      = new Dictionary<string, double> { {"Length", 128.0} },
+                   TestId       = Guid.NewGuid().ToString(),
+                   TestName     = "ApplicationInsights_WriteAvailability",
+                   Sequence     = "1",
+                   RunLocation  = "HobbitTown",
+                   Duration     = new TimeSpan(100)
+                 });
+            }
+        }
+
         #region Private
 
         private IRequestLog SetupRequest(string operationName, bool childrenAsJson = true)
@@ -97,7 +119,7 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
         }
 
 
-        private AppInsights CreateAppInsights(bool childrenAsJson = true)
+        private ILog CreateAppInsights(bool childrenAsJson = true)
         { 
             var config = TestConfiguration.Load();
             var tConfig = new TelemetryConfiguration { ConnectionString = config.InstrumentationKey };
@@ -123,9 +145,9 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
 
     internal class Configuration
     {
-        public string InstrumentationKey        { get; set; }
+        public string InstrumentationKey        { get; set; } 
         public string ConnectionString          { get; set; }
-        public string DataLakeConnectionString          { get; set; }
+        public string DataLakeConnectionString  { get; set; }
         public string ConfigConnectionString    { get; set; }
 
         public string KeyVaultUri               { get; set; }

@@ -120,6 +120,40 @@ namespace MondoCore.Azure.ApplicationInsights
 
                     break;
                 }
+
+                case Telemetry.TelemetryType.Availability:
+                { 
+                    if(telemetry is MondoCore.Log.AvailabilityTelemetry availability)
+                    {
+                        var tel = new Microsoft.ApplicationInsights.DataContracts.AvailabilityTelemetry
+                        {
+                            Duration    = availability.Duration,
+                            Id          = availability.TestId,
+                            Message     = availability.Message,
+                            Name        = availability.TestName,
+                            RunLocation = availability.RunLocation,
+                            Sequence    = availability.Sequence,
+                            Success     = availability.Success,
+                            Timestamp   = availability.Timestamp ?? DateTime.UtcNow,
+                        };
+
+                        if(availability.Properties != null)
+                            tel.Properties.Merge<string, string>(availability.Properties.ToStringDictionary());
+
+                        if(availability.Metrics != null)
+                            tel.Metrics.Merge<string, double>(availability.Metrics);
+
+                        tel.MergeProperties(telemetry, _childrenAsJson);
+
+                        SetAttributes(telemetry, tel, tel);
+
+                        _client.TrackAvailability(tel);
+                    }
+                    else
+                        throw new ArgumentException("Tracking availability requires a Telemetry parameter of type AvailabilityTelemetry");
+
+                    break;
+                }
             }
 
             _client.Flush();
@@ -134,9 +168,20 @@ namespace MondoCore.Azure.ApplicationInsights
         }
 
         /*************************************************************************/
-        public IRequestLog NewRequest(string operationName = null, string correlationId = null)
+        public IRequestLog NewRequest(string operationName = null, string correlationId = null, object? properties = null)
         {
-            throw new NotSupportedException();
+            if(string.IsNullOrWhiteSpace(operationName))
+                operationName = _client.Context.Operation.Name;
+
+            if(string.IsNullOrWhiteSpace(correlationId))
+                correlationId = _client.Context.Operation.Id;
+
+            IRequestLog request = new RequestLog(this, operationName, correlationId);
+
+            if(properties != null)
+                request.SetProperties(properties);
+
+            return request;
         }
 
         #region Private
