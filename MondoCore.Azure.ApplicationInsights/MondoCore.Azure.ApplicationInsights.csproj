@@ -12,6 +12,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.6.0</Version>
     <Title>MondoCore.Azure.ApplicationInsights</Title>
+    <PackageReleaseNotes>Add WriteAvailability</PackageReleaseNotes>
+    <PackageTags>application insights;logging;logger</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
