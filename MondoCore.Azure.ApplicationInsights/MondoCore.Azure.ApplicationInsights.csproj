@@ -10,13 +10,15 @@
     <Description>Implementation of ILog interface for Application Insights</Description>
     <Copyright>© Jim Lightfoot, All Rights Reserved</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.5.0</Version>
+    <Version>1.7.0</Version>
     <Title>MondoCore.Azure.ApplicationInsights</Title>
+    <PackageReleaseNotes>Add WriteAvailability</PackageReleaseNotes>
+    <PackageTags>application insights;logging;logger</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageReference Include="MondoCore.Log" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.22.0" />
+    <PackageReference Include="MondoCore.Log" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
