@@ -10,7 +10,7 @@
  *  Original Author: Jim Lightfoot                                          
  *    Creation Date: 29 Nov 2015                                            
  *                                                                          
- *   Copyright (c) 2015-2023 - Jim Lightfoot, All rights reserved           
+ *   Copyright (c) 2015-2024 - Jim Lightfoot, All rights reserved           
  *                                                                          
  *  Licensed under the MIT license:                                         
  *    http://www.opensource.org/licenses/mit-license.php                    
@@ -18,13 +18,15 @@
  ****************************************************************************/
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using MondoCore.Collections;
 using MondoCore.Log;
 
 namespace MondoCore.Azure.ApplicationInsights
@@ -54,7 +56,7 @@ namespace MondoCore.Azure.ApplicationInsights
                 { 
                     var tel = new ExceptionTelemetry(telemetry.Exception);
                     
-                    tel.MergeProperties(telemetry, _childrenAsJson);
+                    tel.AppendProperties(telemetry, _childrenAsJson);
                     tel.Message = telemetry.Exception.Message;
                     tel.SeverityLevel = (SeverityLevel)((int)telemetry.Severity);
 
@@ -69,7 +71,7 @@ namespace MondoCore.Azure.ApplicationInsights
                 { 
                     var tel = new EventTelemetry(telemetry.Message);
 
-                    tel.MergeProperties(telemetry, _childrenAsJson);
+                    tel.AppendProperties(telemetry, _childrenAsJson);
 
                     SetAttributes(telemetry, tel, tel);
 
@@ -82,7 +84,7 @@ namespace MondoCore.Azure.ApplicationInsights
                 { 
                     var tel = new MetricTelemetry(telemetry.Message, telemetry.Value);
 
-                    tel.MergeProperties(telemetry, _childrenAsJson);
+                    tel.AppendProperties(telemetry, _childrenAsJson);
 
                     SetAttributes(telemetry, tel, tel);
 
@@ -95,7 +97,7 @@ namespace MondoCore.Azure.ApplicationInsights
                 { 
                     var tel = new TraceTelemetry(telemetry.Message, (SeverityLevel)((int)telemetry.Severity));
 
-                    tel.MergeProperties(telemetry, _childrenAsJson);
+                    tel.AppendProperties(telemetry, _childrenAsJson);
 
                     SetAttributes(telemetry, tel, tel);
 
@@ -112,7 +114,7 @@ namespace MondoCore.Azure.ApplicationInsights
                                                    telemetry.Request.ResponseCode,
                                                    telemetry.Request.Success);
 
-                    tel.MergeProperties(telemetry, _childrenAsJson);
+                    tel.AppendProperties(telemetry, _childrenAsJson);
 
                     SetAttributes(telemetry, tel, tel);
 
@@ -134,16 +136,16 @@ namespace MondoCore.Azure.ApplicationInsights
                             RunLocation = availability.RunLocation,
                             Sequence    = availability.Sequence,
                             Success     = availability.Success,
-                            Timestamp   = availability.Timestamp ?? DateTime.UtcNow,
+                            Timestamp   = availability.Timestamp ?? DateTime.UtcNow
                         };
 
                         if(availability.Properties != null)
-                            tel.Properties.Merge<string, string>(availability.Properties.ToStringDictionary());
+                            tel.Properties.Append(availability.Properties.ToReadOnlyStringDictionary());
 
                         if(availability.Metrics != null)
-                            tel.Metrics.Merge<string, double>(availability.Metrics);
+                            tel.Metrics.Append(availability.Metrics);
 
-                        tel.MergeProperties(telemetry, _childrenAsJson);
+                        tel.AppendProperties(telemetry, _childrenAsJson);
 
                         SetAttributes(telemetry, tel, tel);
 

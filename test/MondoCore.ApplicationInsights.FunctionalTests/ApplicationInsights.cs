@@ -17,14 +17,17 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
     [TestCategory("Functional Tests")]
     public class ApplicationInsightsTests
     {
-        private string _correlationId = Guid.NewGuid().ToString().ToLower();
+        private static string _correlationId = Guid.NewGuid().ToString().ToLower();
 
         [TestMethod]
         public async Task ApplicationInsights_WriteException()
         {
             var log = CreateAppInsights();
+            var ex  = new System.Exception("Test Exception");
+
+            ex.Source = "ApplicationInsights_WriteException";
              
-            await log.WriteError(new System.Exception("Test Exception"), properties: new { Make = "Chevy", Model = "Camaro", Year = 1969 });
+            await log.WriteError(ex, properties: new { Make = "Chevy", Model = "Camaro", Year = 1969 }, correlationId: _correlationId);
         }
 
         [TestMethod]
@@ -32,19 +35,19 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
         {
             var log = CreateAppInsights();
              
-            await log.WriteEvent("Test Event", properties: new { Make = "Chevy", Model = "Camaro", Year = 1969 });
+            await log.WriteEvent("Test Event", properties: new { Make = "Chevy", Model = "Camaro", Year = 1969 }, correlationId: _correlationId);
         }
 
         [TestMethod]
         public async Task ApplicationInsights_WriteError()
         {
-            using(var log = SetupRequest("WriteError"))
+            using(var log = SetupRequest("WriteError", true))
             { 
                 log.SetProperty("Model", "Corvette");
 
                 await log.WriteError(new Exception("Bob's hair is on fire"), properties: new {Make = "Chevy", Engine = new { Cylinders = 8, Displacement = 350, Piston = new { RodMaterial = "Chrome Moly", Material = "Stainless Steel", Diameter = 9200 } } } );
-                await log.WriteError(new Exception("Fred's hair is on fire"), properties: new {Make = "Chevy" } );
-                await log.WriteError(new Exception("Wilma's hair is on fire"), properties: new {Make = "Chevy" } );
+                await log.WriteError(new Exception("Fred's hair is on fire"), properties: new {Make = "Chevy" });
+                await log.WriteError(new Exception("Wilma's hair is on fire"), properties: new {Make = "Chevy" });
             }
         }
 
@@ -55,16 +58,16 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
             { 
                 log.SetProperty("Model", "Corvette");
 
-                await log.WriteError(new Exception("Bob Dot's hair is on fire"), properties: new {Make = "Chevy", Engine = new { Cylinders = 8, Displacement = 350, Piston = new { RodMaterial = "Chrome Moly", Material = "Stainless Steel", Diameter = 9200 } } } );
-                await log.WriteError(new Exception("Fred Dot's hair is on fire"), properties: new {Make = "Chevy" } );
-                await log.WriteError(new Exception("Wilma Dot's hair is on fire"), properties: new {Make = "Chevy" } );
+                await log.WriteError(new Exception("Bob Dot's hair is on fire"), properties: new {Make = "Chevy", Engine = new { Cylinders = 8, Displacement = 350, Piston = new { RodMaterial = "Chrome Moly", Material = "Stainless Steel", Diameter = 9200 } } });
+                await log.WriteError(new Exception("Fred Dot's hair is on fire"), properties: new {Make = "Chevy" });
+                await log.WriteError(new Exception("Wilma Dot's hair is on fire"), properties: new {Make = "Chevy" });
             }
         }
 
         [TestMethod]
         public async Task ApplicationInsights_WriteError2()
         {
-            using(var log = SetupRequest("WriteError2"))
+            using(var log = SetupRequest("WriteError2", true))
             { 
                 log.SetProperty("Make", "Chevy");
                 log.SetProperty("Model", "Corvette");
@@ -79,37 +82,36 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
         [TestMethod]
         public async Task ApplicationInsights_WriteError3()
         {
-            using(var log = SetupRequest("WriteError3"))
+            using(var log = SetupRequest("WriteError3", true))
             { 
-                 await log.WriteEvent("John's hair is on fire", properties: new {Make = "Chevy", Model = "Corvette" } );
-                 await log.WriteError(new Exception("Linda's hair is on fire"), properties: new {Make = "Chevy", Model = "Corvette" } );
+                 await log.WriteEvent("John's hair is on fire", properties: new {Make = "Chevy", Model = "Corvette" });
+                 await log.WriteError(new Exception("Linda's hair is on fire"), properties: new {Make = "Chevy", Model = "Corvette" });
             }
         }
-
 
         [TestMethod]
         public async Task ApplicationInsights_WriteAvailability()
         {
-            using(var log = SetupRequest("WriteError3"))
+            using(var log = SetupRequest("WriteError3", true))
             { 
                  await log.WriteAvailability(new AvailabilityTelemetry
                  {
-                   Message      = "My app is available",
-                   Success      = true,
-                   Properties   = new { Make = "Chevy", Model = "Silverado"},
-                   Metrics      = new Dictionary<string, double> { {"Length", 128.0} },
-                   TestId       = Guid.NewGuid().ToString(),
-                   TestName     = "ApplicationInsights_WriteAvailability",
-                   Sequence     = "1",
-                   RunLocation  = "HobbitTown",
-                   Duration     = new TimeSpan(100)
+                   Message       = "My app is available",
+                   Success       = true,
+                   Properties    = new { Make = "Chevy", Model = "Silverado"},
+                   Metrics       = new Dictionary<string, double> { {"Length", 128.0} },
+                   TestId        = Guid.NewGuid().ToString(),
+                   TestName      = "ApplicationInsights_WriteAvailability",
+                   Sequence      = "1",
+                   RunLocation   = "HobbitTown",
+                   Duration      = new TimeSpan(100)
                  });
             }
         }
 
         #region Private
 
-        private IRequestLog SetupRequest(string operationName, bool childrenAsJson = true)
+        private IRequestLog SetupRequest(string operationName, bool childrenAsJson = false)
         {
             var baseLog = new MondoCore.Log.Log();
 
@@ -118,8 +120,7 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
             return new RequestLog(baseLog, operationName, _correlationId);
         }
 
-
-        private ILog CreateAppInsights(bool childrenAsJson = true)
+        private ILog CreateAppInsights(bool childrenAsJson = false)
         { 
             var config = TestConfiguration.Load();
             var tConfig = new TelemetryConfiguration { ConnectionString = config.InstrumentationKey };
@@ -128,7 +129,6 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
         }
 
         #endregion
-
     }
 
     internal static class TestConfiguration
