@@ -57,7 +57,7 @@ namespace MondoCore.Azure.ApplicationInsights
                     var tel = new ExceptionTelemetry(telemetry.Exception);
                     
                     tel.AppendProperties(telemetry, _childrenAsJson);
-                    tel.Message = telemetry.Exception.Message;
+                    tel.Message = telemetry.Exception!.Message;
                     tel.SeverityLevel = (SeverityLevel)((int)telemetry.Severity);
 
                     SetAttributes(telemetry, tel, tel);
@@ -109,7 +109,7 @@ namespace MondoCore.Azure.ApplicationInsights
                 case Telemetry.TelemetryType.Request:
                 { 
                     var tel = new RequestTelemetry(telemetry.Message, 
-                                                   telemetry.Request.StartTime, 
+                                                   telemetry.Request!.StartTime, 
                                                    telemetry.Request.Duration, 
                                                    telemetry.Request.ResponseCode,
                                                    telemetry.Request.Success);
