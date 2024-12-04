@@ -90,6 +90,20 @@ namespace MondoCore.ApplicationInsights.FunctionalTests
         }
 
         [TestMethod]
+        public async Task ApplicationInsights_WriteError_lowercase()
+        {
+            using(var log = SetupRequest("WriteError_lowercase", true))
+            { 
+                var make  = "Chevy";
+                var model = "Camaro";
+                var color = "Black";
+
+                 await log.WriteEvent("Alexander's hair is on fire", properties: new {make, model, color});
+                 await log.WriteError(new Exception("Melissa's hair is on fire"), properties: new {make, model, color});
+            }
+        }
+
+        [TestMethod]
         public async Task ApplicationInsights_WriteAvailability()
         {
             using(var log = SetupRequest("WriteError3", true))

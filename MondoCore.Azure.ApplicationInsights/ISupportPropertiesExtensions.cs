@@ -33,7 +33,21 @@ namespace MondoCore.Azure.ApplicationInsights
             if(props == null || props.Count == 0)
                 return;
 
-            aiTelemetry.Properties.AppendStrings(props, childrenAsJson);
+            aiTelemetry.Properties.AppendStrings(props, childrenAsJson, transformKey: (name)=> name.Capitalize() );
+        }
+    }
+
+    internal static class Extensions
+    {
+        internal static string Capitalize(this string? str)
+        {
+            if(string.IsNullOrWhiteSpace(str))
+                return "";
+
+            if(str.Length == 1)
+                return str.ToUpper();
+
+            return str.Substring(0, 1).ToUpper() + str.Substring(1);
         }
     }
 }
